@@ -1,7 +1,7 @@
 import React from 'react';
 import FormField from './FormField';
 
-const FormSection = ({ section }) => {
+const FormSection = ({ section, language }) => {
   const { title, extendedFields } = section.parent;
 
   return (
@@ -9,7 +9,7 @@ const FormSection = ({ section }) => {
       <div className="card-body">
         <h5 className="card-title">{title}</h5>
         {extendedFields?.map((field) => (
-          <FormField key={field.globalId} field={field} />
+          <FormField key={field.globalId} field={field} language={language} />
         ))}
       </div>
     </div>

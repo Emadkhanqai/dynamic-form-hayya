@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { fetchLookupData } from '../services/api';
 
-const FormField = ({ field }) => {
+const FormField = ({ field, language }) => {
   const { title, fieldType, helperText, lookUpSourcePath, required } = field;
   const [options, setOptions] = useState([]);
 
   useEffect(() => {
     if (lookUpSourcePath) {
-      fetchLookupData(lookUpSourcePath).then((data) => {
+      fetchLookupData(lookUpSourcePath, language).then((data) => {
         if (data.success) setOptions(data.result);
       });
     }
-  }, [lookUpSourcePath]);
+  }, [lookUpSourcePath, language]);
 
   const renderField = () => {
     switch (fieldType) {
