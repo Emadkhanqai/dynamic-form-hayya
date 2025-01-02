@@ -1,3 +1,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.custom-radio-group {
+    display: flex;
+    gap: 1rem; /* Space between options */
+    align-items: center;
+  }
+  
+  .custom-radio-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .custom-radio-input {
+    display: none; /* Hide the default radio input */
+  }
+  
+  .custom-radio-circle {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #aaa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .custom-radio-input:checked + .custom-radio-circle {
+    background-color: #d4b000; /* Gold background */
+    border-color: #d4b000;
+  }
+  
+  .custom-radio-input:checked + .custom-radio-circle::after {
+    content: "✓";
+    font-size: 1rem;
+    color: white;
+  }
+  
+  .custom-radio-label:hover .custom-radio-circle {
+    border-color: #666; /* Hover effect */
+  }
+  

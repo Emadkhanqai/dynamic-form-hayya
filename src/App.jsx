@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import DynamicForm from './pages/DynamicForm';
 
 const App = () => {
-  const [language, setLanguage] = useState('ar'); // Default language
+  const [language, setLanguage] = useState('en'); // Default language
 
   const handleLanguageChange = (e) => {
     setLanguage(e.target.value);
