@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { fetchLookupData } from "../services/api";
 
-const FormField = ({ field, language }) => {
+const FormField = ({ field, language, formData, onFormDataChange }) => {
   const {
     title,
     fieldType,
@@ -11,13 +11,17 @@ const FormField = ({ field, language }) => {
     extendedFields,
     regex,
     validationMessage,
+    dependentId,
+    dependentAnswerId,
   } = field;
 
   const [options, setOptions] = useState([]);
   const [error, setError] = useState("");
   const [preview, setPreview] = useState(null);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
+    // Fetch dropdown or radio options if `lookUpSourcePath` is provided
     if (lookUpSourcePath) {
       fetchLookupData(lookUpSourcePath, language).then((data) => {
         if (data.success) setOptions(data.result);
@@ -25,8 +29,23 @@ const FormField = ({ field, language }) => {
     }
   }, [lookUpSourcePath, language]);
 
+  useEffect(() => {
+    // Check if this field has a dependentId and validate its visibility
+    if (dependentId && formData) {
+      const dependentValue = formData[dependentId];
+      if (dependentValue === dependentAnswerId) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    } else {
+      setIsVisible(true); // No dependency, always visible
+    }
+  }, [dependentId, dependentAnswerId, formData]);
+
   const handleInputChange = (e) => {
     const value = e.target.value;
+    onFormDataChange(field.code, value);
 
     if (regex) {
       const regexPattern = new RegExp(regex);
@@ -47,47 +66,62 @@ const FormField = ({ field, language }) => {
     }
   };
 
+  if (!isVisible) {
+    return null; // Do not render if not visible
+  }
+
   const renderField = () => {
     switch (fieldType) {
       case "dropdown":
         return (
-          <select className="form-select" required={required}>
+          <select
+            className="form-select"
+            required={required}
+            onChange={(e) => onFormDataChange(field.code, e.target.value)}
+          >
             <option value="">Select...</option>
             {options.map((opt) => (
-              <option key={opt.id} value={opt.value}>
+              <option key={opt.id} value={opt.id}>
                 {opt.value}
               </option>
             ))}
           </select>
         );
 
-        case "radio":
-          return (
-            <div className="custom-radio-group">
-              {options.map((opt) => (
-                <label
-                  key={opt.id}
-                  htmlFor={`radio-${opt.id}`}
-                  className="custom-radio-label"
-                >
-                  <input
-                    type="radio"
-                    className="custom-radio-input"
-                    name={field.code}
-                    value={opt.value}
-                    id={`radio-${opt.id}`}
-                    required={required}
-                  />
-                  <span className="custom-radio-circle"></span>
-                  {opt.value}
-                </label>
-              ))}
-            </div>
-          );
-        
+      case "radio":
+        return (
+          <div className="custom-radio-group">
+            {options.map((opt) => (
+              <label
+                key={opt.id}
+                htmlFor={`radio-${opt.id}`}
+                className="custom-radio-label"
+              >
+                <input
+                  type="radio"
+                  className="custom-radio-input"
+                  name={field.code}
+                  value={opt.id}
+                  id={`radio-${opt.id}`}
+                  required={required}
+                  onChange={(e) => onFormDataChange(field.code, e.target.value)}
+                />
+                <span className="custom-radio-circle"></span>
+                {opt.value}
+              </label>
+            ))}
+          </div>
+        );
 
       case "date":
-        return <input type="date" className="form-control" required={required} />;
+        return (
+          <input
+            type="date"
+            className="form-control"
+            required={required}
+            onChange={(e) => onFormDataChange(field.code, e.target.value)}
+          />
+        );
 
       case "text":
         return (
@@ -105,7 +139,10 @@ const FormField = ({ field, language }) => {
       case "file-round":
         return (
           <div className="text-center">
-            <label htmlFor={`file-upload-${field.code}`} style={{ cursor: "pointer" }}>
+            <label
+              htmlFor={`file-upload-${field.code}`}
+              style={{ cursor: "pointer" }}
+            >
               <div
                 style={{
                   width: "100px",
@@ -122,10 +159,17 @@ const FormField = ({ field, language }) => {
                   <img
                     src={preview}
                     alt="Preview"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
                   />
                 ) : (
-                  <i className="fa fa-user" style={{ fontSize: "40px", color: "#757575" }}></i>
+                  <i
+                    className="fa fa-user"
+                    style={{ fontSize: "40px", color: "#757575" }}
+                  ></i>
                 )}
               </div>
               <div style={{ marginTop: "10px", color: "#757575" }}>{title}</div>
@@ -141,7 +185,13 @@ const FormField = ({ field, language }) => {
         );
 
       case "file-box":
-        return <input type="file" className="form-control" required={required} />;
+        return (
+          <input
+            type="file"
+            className="form-control"
+            required={required}
+          />
+        );
 
       case "toggle":
         return (
@@ -155,6 +205,9 @@ const FormField = ({ field, language }) => {
                 type="checkbox"
                 id={`toggle-${field.code}`}
                 required={required}
+                onChange={(e) =>
+                  onFormDataChange(field.code, e.target.checked ? "Yes" : "No")
+                }
               />
             </div>
           </div>
@@ -185,7 +238,12 @@ const FormField = ({ field, language }) => {
         <div className="row">
           {extendedFields.map((nestedField) => (
             <div key={nestedField.globalId} className="col-md-6">
-              <FormField field={nestedField} language={language} />
+              <FormField
+                field={nestedField}
+                language={language}
+                formData={formData}
+                onFormDataChange={onFormDataChange}
+              />
             </div>
           ))}
         </div>
